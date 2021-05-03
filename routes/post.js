@@ -5,8 +5,15 @@ const Post = require('../models/post');
 const imageStore = require('../util/imageUpload');
 
 router.get('/', async (req, res) => {
-    const posts = await Post.find();
-    res.status(200).send(posts);
+    const pagesize = +req.query.pagesize;
+    const currentpage = +req.query.currentpage;
+    const postsCount = await Post.countDocuments();
+    const postQuery = Post.find();
+    if (pagesize && currentpage) {
+        postQuery.skip(pagesize * (currentpage - 1)).limit(pagesize);
+    }
+    const posts = await postQuery;
+    res.status(200).send({ posts, postsCount });
 });
 
 router.get('/:id', async (req, res) => {
