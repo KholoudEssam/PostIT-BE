@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const multer = require('multer');
 
+const auth = require('../middlewares/auth');
 const Post = require('../models/post');
 const imageStore = require('../util/imageUpload');
 
@@ -23,6 +24,7 @@ router.get('/:id', async (req, res) => {
 
 router.post(
     '/',
+    auth,
     multer({ storage: imageStore }).single('imageUrl'),
     async (req, res) => {
         const url = req.protocol + '://' + req.get('host');
@@ -38,6 +40,7 @@ router.post(
 
 router.put(
     '/:id',
+    auth,
     multer({ storage: imageStore }).single('imageUrl'),
     async (req, res) => {
         if (req.file) {
@@ -54,7 +57,7 @@ router.put(
     }
 );
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
     const post = await Post.findByIdAndDelete(req.params.id);
     res.status(200).send(post);
 });
