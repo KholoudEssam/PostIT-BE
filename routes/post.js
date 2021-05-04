@@ -32,6 +32,7 @@ router.post(
             title: req.body.title,
             content: req.body.content,
             imageUrl: url + '/images/' + req.file.filename,
+            creatorId: req.userId,
         });
         const savePost = await post.save();
         res.status(201).send(savePost);
@@ -48,18 +49,26 @@ router.put(
             req.body.imageUrl = url + '/images/' + req.file.filename;
             console.log(req.body.imageUrl);
         }
-        //console.log(req.body);
-        const updatedPost = await Post.findByIdAndUpdate(
-            req.params.id,
+
+        let updatedPost = await Post.findById(req.params.id);
+
+        updatedPost = await Post.updateOne(
+            { _id: req.params.id, creatorId: req.userId },
             req.body
         );
-        res.status(200).send(updatedPost);
+        res.status(200).send({});
     }
 );
 
 router.delete('/:id', auth, async (req, res) => {
-    const post = await Post.findByIdAndDelete(req.params.id);
-    res.status(200).send(post);
+    const post = await Post.deleteOne({
+        _id: req.params.id,
+        creatorId: req.userId,
+    });
+
+    if (!post.deletedCount)
+        return res.status(401).send({ msg: 'unauthorized to delete' });
+    res.status(200).send({});
 });
 
 module.exports = router;
